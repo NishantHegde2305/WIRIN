@@ -37,15 +37,14 @@ jobs:
           echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
           echo "PATH=${HOME}/android-sdk/cmdline-tools/latest/bin:${HOME}/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
 
-      # List available packages to help diagnose issues
-      - name: List available Android SDK packages
+      # Accept SDK License
+      - name: Accept SDK License
         run: |
-          sdkmanager --list
+          yes | sdkmanager --licenses 
 
-      # Install required Android SDK components and accept licenses
-      - name: Install Android SDK Components and Accept Licenses
+      # Install required Android SDK components 
+      - name: Install Android SDK Components
         run: |
-          yes | sdkmanager --licenses
           sdkmanager --install "platforms;android-33" "build-tools;33.0.0" "platform-tools"
           sdkmanager --update
 
