@@ -42,11 +42,11 @@ jobs:
         run: |
           sdkmanager --list
 
-      # Install required Android SDK components
-      - name: Install Android SDK Components
+      # Install required Android SDK components and accept licenses
+      - name: Install Android SDK Components and Accept Licenses
         run: |
-          echo "y" | sdkmanager --install "platforms;android-33" "build-tools;33.0.0" "platform-tools"
-          echo "y" | sdkmanager --licenses
+          yes | sdkmanager --licenses
+          sdkmanager --install "platforms;android-33" "build-tools;33.0.0" "platform-tools"
 
       # Cache Buildozer global directory
       - name: Cache Buildozer global directory
@@ -71,11 +71,10 @@ jobs:
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-
       # Build with Buildozer
       - name: Build with Buildozer
         run: |
-          buildozer android debug
+          buildozer -v android debug
 
       # Upload artifacts
       - name: Upload artifacts
