@@ -18,6 +18,11 @@ jobs:
           echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
         shell: bash
 
+      - name: Configure Android SDK Path
+        run: |
+          echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
+          echo "PATH=$PATH:${HOME}/android-sdk/tools:${HOME}/android-sdk/platform-tools" >> $GITHUB_ENV
+
       - name: Cache Buildozer global directory
         uses: actions/cache@v2
         with:
