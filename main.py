@@ -3,9 +3,13 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
 from kivy.uix.label import Label
 from kivy.graphics import Color, Rectangle
+from kivy.core.window import Window
 
 class RGBBrightnessApp(App):
     def build(self):
+        # Set the window size for Buildozer compatibility
+        Window.size = (400, 600)
+
         layout = BoxLayout(orientation='vertical')
 
         # Label to display RGB values
