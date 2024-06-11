@@ -11,45 +11,58 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # used to cache dependencies with a timeout
+      # Get current date for cache key
       - name: Get Date
         id: get-date
         run: |
           echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
         shell: bash
 
-      - name: Configure Android SDK Path
-        run: |
-          echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:${HOME}/android-sdk/tools:${HOME}/android-sdk/platform-tools" >> $GITHUB_ENV
-
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v2
-        with:
-          path: .buildozer_global
-          key: buildozer-global-${{ hashFiles('buildozer.spec') }} # Replace with your path
-
-      - uses: actions/cache@v2
-        with:
-          path: .buildozer
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('buildozer.spec') }}
-
+      # Install Java
       - name: Install Java
         uses: actions/setup-java@v2
         with:
           java-version: '11'
           distribution: 'temurin'
 
-      - name: Install Android SDK
+      # Download and set up Android SDK
+      - name: Set up Android SDK
+        run: |
+          mkdir -p "$HOME/android-sdk"
+          curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip
+          unzip -q sdk-tools.zip -d "$HOME/android-sdk"
+          mv "$HOME/android-sdk/cmdline-tools" "$HOME/android-sdk/latest"
+          mkdir -p "$HOME/android-sdk/cmdline-tools"
+          mv "$HOME/android-sdk/latest" "$HOME/android-sdk/cmdline-tools/latest"
+          echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
+          echo "PATH=${HOME}/android-sdk/cmdline-tools/latest/bin:${HOME}/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
+
+      # Install required Android SDK components
+      - name: Install Android SDK Components
         run: |
           echo "y" | sdkmanager --install "platforms;android-33" "build-tools;33.0.0" "system-images;android-33;google_apis;x86" "platform-tools"
           echo "y" | sdkmanager --licenses
 
+      # Cache Buildozer global directory
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v2
+        with:
+          path: .buildozer_global
+          key: buildozer-global-${{ hashFiles('buildozer.spec') }} # Replace with your path
+
+      # Cache Buildozer directory
+      - uses: actions/cache@v2
+        with:
+          path: .buildozer
+          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('buildozer.spec') }}
+
+      # Configure Buildozer
       - name: Configure Buildozer
         run: |
           echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
           echo "PATH=$PATH:${HOME}/android-sdk/tools:${HOME}/android-sdk/platform-tools" >> $GITHUB_ENV
 
+      # Build with Buildozer
       - name: Build with Buildozer
         uses: ArtemSBulgakov/buildozer-action@v1
         id: buildozer
@@ -57,6 +70,7 @@ jobs:
           command: buildozer android debug
           buildozer_version: master
 
+      # Upload artifacts
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
