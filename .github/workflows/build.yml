@@ -61,19 +61,21 @@ jobs:
           path: .buildozer
           key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('buildozer.spec') }}
 
-      # Configure Buildozer
-      - name: Configure Buildozer
+      # Install Buildozer
+      - name: Install Buildozer
         run: |
-          echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:${HOME}/android-sdk/tools:${HOME}/android-sdk/platform-tools" >> $GITHUB_ENV
+          pip install git+https://github.com/kivy/buildozer.git@master
+
+      # Add local bin to PATH
+      - name: Add local bin to PATH
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_ENV
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
       # Build with Buildozer
       - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
-        with:
-          command: buildozer android debug
-          buildozer_version: master
+        run: |
+          buildozer android debug
 
       # Upload artifacts
       - name: Upload artifacts
